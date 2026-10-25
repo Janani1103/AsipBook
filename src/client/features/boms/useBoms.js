@@ -1,0 +1,9 @@
+"use client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { bomsApi } from "./bomsApi.js";
+export const useBoms = (filters = {}) => useQuery({ queryKey: ["boms", filters], queryFn: () => bomsApi.list(filters), placeholderData: (previous) => previous });
+export const useBom = (id) => useQuery({ queryKey: ["bom", id], queryFn: () => bomsApi.getById(id), enabled: !!id });
+export const useCheckAvailability = (id, quantity, sourceWarehouseId) => useQuery({ queryKey: ["bomAvailability", id, quantity, sourceWarehouseId], queryFn: () => bomsApi.checkAvailability(id, quantity), enabled: !!id && !!quantity });
+const useBomMutation = (fn, message) => { const client = useQueryClient(); return useMutation({ mutationFn: fn, onSuccess: () => { client.invalidateQueries({ queryKey: ["boms"] }); client.invalidateQueries({ queryKey: ["bom"] }); toast.success(message); }, onError: (error) => toast.error(error.response?.data?.message || "Failed") }); };
+export const useCreateBom = () => useBomMutation(bomsApi.create, "BOM created"); export const useUpdateBom = () => useBomMutation(({ id, data }) => bomsApi.update(id, data), "BOM updated"); export const useDeleteBom = () => useBomMutation(bomsApi.delete, "BOM archived");

@@ -1,0 +1,13 @@
+"use client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { quotationsApi } from "./quotationsApi.js";
+const error = (err) => toast.error(err.response?.data?.message || "Failed");
+export const useQuotations = (filters = {}) => useQuery({ queryKey: ["quotations", filters], queryFn: () => quotationsApi.list(filters), placeholderData: (previous) => previous });
+export const useQuotation = (id) => useQuery({ queryKey: ["quotation", id], queryFn: () => quotationsApi.getById(id), enabled: !!id });
+export const useCreateQuotation = () => { const qc = useQueryClient(); return useMutation({ mutationFn: quotationsApi.create, onSuccess: () => { ["quotations", "salesOrders", "dashboard"].forEach((key) => qc.invalidateQueries({ queryKey: [key] })); toast.success("Quotation created"); }, onError: (err) => toast.error(err.response?.data?.message || "Failed to create quotation") }); };
+export const useUpdateQuotation = () => { const qc = useQueryClient(); return useMutation({ mutationFn: ({ id, data }) => quotationsApi.update(id, data), onSuccess: () => { qc.invalidateQueries({ queryKey: ["quotations"] }); qc.invalidateQueries({ queryKey: ["quotation"] }); toast.success("Quotation updated"); }, onError: error }); };
+export const useChangeQuotationStatus = () => { const qc = useQueryClient(); return useMutation({ mutationFn: ({ id, status, reason }) => quotationsApi.changeStatus(id, status, reason), onSuccess: (data) => { qc.invalidateQueries({ queryKey: ["quotations"] }); qc.invalidateQueries({ queryKey: ["quotation"] }); toast.success(data.message); }, onError: error }); };
+export const useConvertQuotationToSalesOrder = () => { const qc = useQueryClient(); return useMutation({ mutationFn: quotationsApi.convertToSalesOrder, onSuccess: (data) => { qc.invalidateQueries({ queryKey: ["quotations"] }); qc.invalidateQueries({ queryKey: ["quotation"] }); qc.invalidateQueries({ queryKey: ["salesOrders"] }); toast.success(data.message); }, onError: error }); };
+export const useConvertQuotationToInvoice = () => { const qc = useQueryClient(); return useMutation({ mutationFn: quotationsApi.convertToInvoice, onSuccess: (data) => { qc.invalidateQueries({ queryKey: ["quotations"] }); qc.invalidateQueries({ queryKey: ["quotation"] }); qc.invalidateQueries({ queryKey: ["invoices"] }); toast.success(data.message); }, onError: error }); };
+export const useDeleteQuotation = () => { const qc = useQueryClient(); return useMutation({ mutationFn: quotationsApi.delete, onSuccess: () => { qc.invalidateQueries({ queryKey: ["quotations"] }); toast.success("Quotation deleted"); }, onError: error }); };
