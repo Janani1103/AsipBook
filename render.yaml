@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: asipbook-erp-backend
+    env: node
+    plan: free
+    region: singapore
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        value: mongodb+srv://raxwotechnology_db_user:BIGI2njjHbzjI3eu@cluster0.oubhxca.mongodb.net/asipbook?retryWrites=true&w=majority
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: "*"
